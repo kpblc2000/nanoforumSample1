@@ -4,11 +4,21 @@ using nanoforumSample1.Entities;
 using Teigha.DatabaseServices;
 using Teigha.Geometry;
 using Teigha.Runtime;
+using Teigha.Colors;
 
 namespace nanoforumSample1
 {
     public class MainCommand
     {
+
+        private class LayerRecord
+        {
+            public string Name { get; set; }
+            public byte Red { get; set; }
+            public byte Green { get; set; }
+            public byte Blue { get; set; }
+        }
+
         [CommandMethod("фв", CommandFlags.UsePickSet |
                          CommandFlags.Redraw | CommandFlags.Modal)] // название команды, вызываемой в Autocad
         public void addEntity()
@@ -29,12 +39,24 @@ namespace nanoforumSample1
             //Проверка что выбрано
             using (Transaction trAdding = dbCurrent.TransactionManager.StartTransaction())
             {
+                List<LayerRecord> layersToCreate = new List<LayerRecord>()
+                {
+                    new LayerRecord(){Name="Узлы_Saidi_Saifi_AeroHost", Red=0, Green = 127, Blue = 0},
+                    new LayerRecord(){Name = "Граф_Saidi_Saifi_AeroHost",Red= 76,Green = 153,Blue = 133},
+                    new LayerRecord(){Name ="НазванияЛиний_Saidi_Saifi_AeroHost",Red= 0,Green = 191,Blue = 255},
+                    new LayerRecord(){Name= "Ребра_Saidi_Saifi_AeroHost",Red = 255,Green = 191,Blue = 0 }
+                };
 
-                CreatLayer("Узлы_Saidi_Saifi_AeroHost", 0, 127, 0, ed, dbCurrent, trAdding);
-                CreatLayer("Граф_Saidi_Saifi_AeroHost", 76, 153, 133, ed, dbCurrent, trAdding);
-                CreatLayer("НазванияЛиний_Saidi_Saifi_AeroHost", 0, 191, 255, ed, dbCurrent, trAdding);
-                CreatLayer("Ребра_Saidi_Saifi_AeroHost", 255, 191, 0, ed, dbCurrent, trAdding);
-
+                foreach (LayerRecord entity in layersToCreate)
+                {
+                    ObjectId layerId = CreateLayer(dbCurrent, entity.Name, entity.Red, entity.Green, entity.Blue);
+                    if (layerId == ObjectId.Null)
+                    {
+                        ed.WriteMessage($"\nНе удалось создать слой {entity.Name}");
+                        return;
+                    }
+                }
+                
                 Entity btrCurrSpace = trAdding.GetObject(per.ObjectId, OpenMode.ForRead) as Entity;
 
                 //ID Выбранного объекта
@@ -83,17 +105,8 @@ namespace nanoforumSample1
 
                 CreatTextFromEdge("Ребра_Saidi_Saifi_AeroHost", listLine, ed, dbCurrent, trAdding);
 
-
-
-
                 trAdding.Commit();
             }
-
-
-
-
-
-
         }
 
         public void Initialize()
@@ -277,28 +290,26 @@ namespace nanoforumSample1
             return lisiofListesLine;
         }
 
-        public void CreatLayer(string Name, byte ColorR, byte ColorG, byte ColorB, Editor ed, Database dbCurrent, Transaction trAdding)
+        public ObjectId CreateLayer(Database dbCurrent, string Name, byte ColorR, byte ColorG, byte ColorB)
         {
-
-            LayerTable layerTable = trAdding.GetObject(dbCurrent.LayerTableId, OpenMode.ForWrite) as LayerTable;
-
-            if (!layerTable.Has(Name))
+            using (Transaction trAdding = dbCurrent.TransactionManager.StartTransaction())
             {
-                // Создание слоя
-                LayerTableRecord acLyrTblRec = new LayerTableRecord();
-                acLyrTblRec.Name = Name;
-                acLyrTblRec.Color = Teigha.Colors.Color.FromRgb(ColorR, ColorG, ColorB);
-                layerTable.UpgradeOpen();
-                ObjectId acObjId = layerTable.Add(acLyrTblRec);
-                trAdding.AddNewlyCreatedDBObject(acLyrTblRec, true);
-                ed.WriteMessage("\nСлой создан: " + Name + " !!!Не удаляйте данный слой!!");
-            }
-            else
-            {
-                // ed.WriteMessage("\nСлой уже существует: " + Name);
-            }
+                LayerTable layerTable = trAdding.GetObject(dbCurrent.LayerTableId, OpenMode.ForRead) as LayerTable;
 
-
+                if (!layerTable.Has(Name))
+                {
+                    layerTable.UpgradeOpen();
+                    LayerTableRecord acLyrTblRec = new LayerTableRecord();
+                    acLyrTblRec.Name = Name;
+                    acLyrTblRec.Color = Color.FromRgb(ColorR, ColorG, ColorB);
+                    ObjectId acObjId = layerTable.Add(acLyrTblRec);
+                    trAdding.AddNewlyCreatedDBObject(acLyrTblRec, true);
+                    trAdding.Commit();
+                    return acObjId;
+                }
+                LayerTableRecord layerTableRec = trAdding.GetObject(layerTable[Name], OpenMode.ForRead) as LayerTableRecord;
+                return layerTableRec.ObjectId;
+            }
         }
 
         public void SelectLayer(string Name, Editor ed, Database dbCurrent, Transaction trAdding)
@@ -365,7 +376,7 @@ namespace nanoforumSample1
 
             return resultKnotPoint2;
         }
-        
+
         public void CreatTextFromLine(string nameSearchLayer, List<PowerLine> listPowerLineCrearTest, Editor ed, Database dbCurrent, Transaction trAdding)
         {
 
@@ -404,7 +415,7 @@ namespace nanoforumSample1
 
             }
         }
-        
+
         public void SelectObjectFromListClass(List<PowerLine> selectPowerLine, Editor ed, Database dbCurrent, Transaction trAdding)
         {
 
@@ -418,12 +429,12 @@ namespace nanoforumSample1
 
 
         }
-        
+
         public void SelectObjectFromListID(List<ObjectId> selectListID, Editor ed)
         {
             ed.SetImpliedSelection(selectListID.ToArray()); //Функция выделения
         }
-        
+
         public void CopySelect(string NameLayer, Editor ed, Database dbCurrent, Transaction trAdding)
         {
 
@@ -461,8 +472,6 @@ namespace nanoforumSample1
 
         public void SelectObjectLayer(string nameLayer, string typeObject, Editor ed)
         {
-
-
             PromptSelectionResult res = ed.SelectAll(new SelectionFilter(new TypedValue[]
             {
                     new TypedValue((int)DxfCode.LayerName, nameLayer),
@@ -508,7 +517,7 @@ namespace nanoforumSample1
 
             }
         }
-        
+
         public List<Edge> CreatClassEdgeList(Editor ed)
         {
             List<Line> edgesList = new List<Line>();
@@ -532,7 +541,9 @@ namespace nanoforumSample1
                     line.IDLine = edgesList[i].ObjectId;
                     line.StartPoint = edgesList[i].StartPoint;
                     line.EndPoint = edgesList[i].EndPoint;
-                    line.CentrPoint = new Point3d((edgesList[i].StartPoint.X + edgesList[i].EndPoint.X) / 2, (edgesList[i].StartPoint.Y + edgesList[i].EndPoint.Y) / 2, (edgesList[i].StartPoint.Z + edgesList[i].EndPoint.Z) / 2);
+                    line.CentrPoint = new Point3d((edgesList[i].StartPoint.X + edgesList[i].EndPoint.X) / 2,
+                        (edgesList[i].StartPoint.Y + edgesList[i].EndPoint.Y) / 2,
+                        (edgesList[i].StartPoint.Z + edgesList[i].EndPoint.Z) / 2);
                     edgesList2.Add(line);
 
                 }
@@ -580,6 +591,6 @@ namespace nanoforumSample1
 
             }
         }
-        
+
     }
 }
