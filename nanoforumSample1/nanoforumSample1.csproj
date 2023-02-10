@@ -9,11 +9,9 @@
   <ItemGroup>
     <Reference Include="hostdbmgd">
       <HintPath>..\SDK\nanoCAD\hostdbmgd.dll</HintPath>
-      <Private>False</Private>
     </Reference>
     <Reference Include="hostmgd">
       <HintPath>..\SDK\nanoCAD\hostmgd.dll</HintPath>
-      <Private>False</Private>
     </Reference>
   </ItemGroup>
 

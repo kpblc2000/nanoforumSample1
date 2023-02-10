@@ -1,11 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using HostMgd.ApplicationServices;
+﻿using HostMgd.ApplicationServices;
 using HostMgd.EditorInput;
-using nanoforumSample1.Entities;
 using Teigha.DatabaseServices;
 using Teigha.Geometry;
 using Teigha.Runtime;
