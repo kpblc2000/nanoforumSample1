@@ -1,5 +1,6 @@
 ﻿using HostMgd.ApplicationServices;
 using HostMgd.EditorInput;
+using nanoforumSample1.Entities;
 using Teigha.DatabaseServices;
 using Teigha.Geometry;
 using Teigha.Runtime;
@@ -366,9 +367,7 @@ namespace nanoforumSample1
 
             return resultKnotPoint2;
         }
-
-
-
+        
         public void CreatTextFromLine(string nameSearchLayer, List<PowerLine> listPowerLineCrearTest, Editor ed, Database dbCurrent, Transaction trAdding)
         {
 
@@ -422,40 +421,12 @@ namespace nanoforumSample1
 
 
         }
-
-
-        public class PowerLine
-        {
-            public string Name { get; set; }
-            public List<Point2d> Point { get; set; }
-            public ObjectId IDLine { get; set; }
-            //public string SigmentLengt { get; set; }
-            //public string LengtPowerLine { get; set; }
-            public ObjectId Parent { get; set; }
-            public string ParentName { get; set; }
-            public List<ObjectId> TapsID { get; set; }
-            public List<string> TapsName { get; set; }
-
-            public PowerLine()
-            {
-                Name = null;
-                Point = new List<Point2d>();
-                IDLine = ObjectId.Null;
-                Parent = ObjectId.Null;
-                ParentName = null;
-                TapsID = new List<ObjectId>();
-                TapsName = new List<string>();
-            }
-
-        }
-
-
+        
         public void SelectObjectFromListID(List<ObjectId> selectListID, Editor ed)
         {
             ed.SetImpliedSelection(selectListID.ToArray()); //Функция выделения
         }
-
-
+        
         public void CopySelect(string NameLayer, Editor ed, Database dbCurrent, Transaction trAdding)
         {
 
@@ -540,31 +511,7 @@ namespace nanoforumSample1
 
             }
         }
-
-
-        public class Edge
-        {
-            public string Name { get; set; }
-            public Point3d StartPoint { get; set; }
-            public Point3d CentrPoint { get; set; }
-            public Point3d EndPoint { get; set; }
-
-            public ObjectId IDLine { get; set; }
-
-
-
-            public Edge()
-            {
-                Name = null;
-                IDLine = ObjectId.Null;
-                StartPoint = new Point3d();
-                EndPoint = new Point3d();
-                CentrPoint = new Point3d();
-
-            }
-
-        }
-
+        
         public List<Edge> CreatClassEdgeList(Editor ed)
         {
             List<Line> edgesList = new List<Line>();
